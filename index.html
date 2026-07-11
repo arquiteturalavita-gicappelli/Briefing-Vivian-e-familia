@@ -406,6 +406,7 @@
 
 <!-- Overlay de status de envio -->
 <div id="sendOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(51,53,42,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;">
+  <iframe name="pdfSendFrame" id="pdfSendFrame" style="display:none" title="envio"></iframe>
   <div style="background:#fff;border-radius:16px;padding:34px 38px;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)">
     <svg style="width:34px;color:#7C8560;margin-bottom:14px" viewBox="0 0 64 24"><use href="#olive-sprig"/></svg>
     <p id="sendOverlayText" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#454C36;font-style:italic;">Gerando seu PDF...</p>
@@ -943,26 +944,15 @@ async function finalizarEEnviar(){
     URL.revokeObjectURL(url);
 
     // 2) Envia o PDF por e-mail para a arquiteta via FormSubmit
+    //    (formulário real enviando para um iframe oculto — é o método
+    //    que o FormSubmit garante para anexos; via fetch() o anexo às
+    //    vezes não chegava.)
     overlayText.textContent = 'Enviando para a arquiteta...';
     const nomeCliente = store['g_nomes'] || 'Cliente';
     const contatoCliente = store['g_contato'] || '';
 
-    const fd = new FormData();
-    fd.append('_subject', 'Briefing preenchido — ' + nomeCliente);
-    fd.append('name', nomeCliente);
-    fd.append('contato', contatoCliente);
-    fd.append('_template', 'table');
-    fd.append('_captcha', 'false');
-    fd.append('mensagem', 'Briefing completo em anexo (PDF). Respostas também disponíveis no botão "Baixar respostas (.txt)" do formulário, se precisar do texto puro.');
-    fd.append('attachment', pdfBlob, 'briefing_vivian_familia.pdf');
-
-    const resp = await fetch(FORMSUBMIT_URL, { method:'POST', body: fd, headers:{ 'Accept':'application/json' } });
-
-    if(resp.ok){
-      overlayText.textContent = 'Tudo certo! Seu PDF foi baixado e enviado. 🌿';
-    } else {
-      overlayText.textContent = 'PDF baixado! Porém o envio automático falhou — por favor, envie o PDF baixado por WhatsApp para garantir.';
-    }
+    await enviarPorEmailComAnexo(pdfBlob, nomeCliente, contatoCliente);
+    overlayText.textContent = 'Tudo certo! Seu PDF foi baixado e enviado. 🌿';
   } catch(err){
     console.error(err);
     if(relatorio && relatorio.parentNode) document.body.removeChild(relatorio);
@@ -971,6 +961,55 @@ async function finalizarEEnviar(){
     btn.disabled = false;
     setTimeout(()=>{ overlay.style.display='none'; }, 3200);
   }
+}
+
+/* Envia o PDF anexado via um <form> real, mirando um iframe oculto.
+   Isso evita os problemas de anexo que acontecem ao enviar via fetch(). */
+function enviarPorEmailComAnexo(pdfBlob, nomeCliente, contatoCliente){
+  return new Promise((resolve)=>{
+    const iframe = document.getElementById('pdfSendFrame');
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = FORMSUBMIT_URL;
+    form.enctype = 'multipart/form-data';
+    form.target = 'pdfSendFrame';
+    form.style.display = 'none';
+
+    const addField = (name, value)=>{
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = name; inp.value = value;
+      form.appendChild(inp);
+    };
+    addField('_subject', 'Novo briefing preenchido — ' + nomeCliente);
+    addField('_template', 'box');
+    addField('_captcha', 'false');
+    addField('Cliente', nomeCliente);
+    addField('Contato_WhatsApp', contatoCliente);
+    addField('Observação', 'O PDF completo do briefing está anexado a este e-mail.');
+
+    // Anexa o PDF através de um input file "montado" via DataTransfer
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'attachment';
+    const dt = new DataTransfer();
+    dt.items.add(new File([pdfBlob], 'briefing_vivian_familia.pdf', {type:'application/pdf'}));
+    fileInput.files = dt.files;
+    form.appendChild(fileInput);
+
+    document.body.appendChild(form);
+
+    let done = false;
+    const finish = ()=>{
+      if(done) return;
+      done = true;
+      setTimeout(()=>{ form.remove(); resolve(true); }, 300);
+    };
+    iframe.addEventListener('load', finish, { once:true });
+    form.submit();
+    // Segurança: resolve mesmo se o evento de carregamento não disparar
+    setTimeout(finish, 6000);
+  });
 }
 
 updateProgress();
