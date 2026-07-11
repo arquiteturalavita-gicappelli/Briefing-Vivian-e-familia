@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing do Projeto · La Vita Arquitetura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF9F4;
+    --branco:#FFFFFF;
+    --oliva-900:#454C36;
+    --oliva-700:#5E6647;
+    --oliva-500:#7C8560;
+    --sage-300:#A6B08D;
+    --sage-100:#D7DCC9;
+    --bege-500:#DED2B9;
+    --bege-300:#EBE3D2;
+    --bege-100:#F3EEE1;
+    --tinta:#33352A;
+    --tinta-soft:#6E7161;
+    --linha:#E4DDCC;
+    --linha-forte:#CFC6B2;
+    --sombra:0 1px 2px rgba(69,76,54,.04), 0 8px 30px rgba(69,76,54,.06);
+    --sombra-forte:0 6px 24px rgba(69,76,54,.10);
+    --radius:16px;
+    --radius-sm:11px;
+    --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'Jost',system-ui,-apple-system,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--tinta);
+    font-weight:300;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Textura de fundo sutil (folhas fantasma) ---------- */
+  .leaf-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;opacity:.5}
+  .leaf-bg svg{position:absolute}
+  .leaf-bg .l1{top:-40px;right:-30px;width:260px;color:var(--sage-100);opacity:.55;transform:rotate(18deg)}
+  .leaf-bg .l2{bottom:-60px;left:-50px;width:320px;color:var(--bege-300);opacity:.6;transform:rotate(-12deg)}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:64px 28px 30px;text-align:center}
+  .brandline{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:26px}
+  .brandline .rule{height:1px;width:44px;background:var(--linha-forte)}
+  .brandmark{font-family:var(--sans);font-weight:500;letter-spacing:.42em;text-transform:uppercase;font-size:12px;color:var(--oliva-700)}
+  .sprig{color:var(--oliva-500);width:34px;flex:none}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.6rem,7vw,4.2rem);line-height:1.02;color:var(--oliva-900);letter-spacing:-.01em}
+  .hero h1 em{font-style:italic;color:var(--oliva-500)}
+  .hero .sub{font-family:var(--serif);font-style:italic;font-size:clamp(1.15rem,3vw,1.5rem);color:var(--tinta-soft);margin-top:10px}
+  .hero .welcome{max-width:600px;margin:26px auto 0;font-size:1rem;color:var(--tinta-soft);font-weight:300}
+  .hero .welcome strong{color:var(--oliva-700);font-weight:500}
+  .meta-badge{display:inline-flex;align-items:center;gap:8px;margin-top:24px;padding:8px 18px;border:1px solid var(--linha-forte);border-radius:100px;font-size:12.5px;letter-spacing:.05em;color:var(--oliva-700);background:var(--branco)}
+  .meta-badge b{font-weight:500}
+
+  /* ---------- BARRA DE PROGRESSO (sticky) ---------- */
+  .progress-wrap{position:sticky;top:0;z-index:40;background:rgba(251,249,244,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha)}
+  .progress-inner{max-width:1180px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;gap:16px}
+  .progress-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--oliva-700);font-weight:500;white-space:nowrap}
+  .bar{flex:1;height:7px;background:var(--bege-300);border-radius:100px;overflow:hidden}
+  .bar span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--sage-300),var(--oliva-500));border-radius:100px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .progress-pct{font-family:var(--serif);font-size:1.35rem;font-weight:600;color:var(--oliva-700);min-width:46px;text-align:right}
+  .save-dot{font-size:11.5px;color:var(--sage-300);display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;transition:opacity .3s}
+  .save-dot.show{opacity:1}
+  .save-dot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sage-300)}
+
+  /* ---------- LAYOUT ---------- */
+  .shell{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:34px 24px 120px;display:grid;grid-template-columns:246px 1fr;gap:44px;align-items:start}
+
+  /* NAV lateral */
+  .nav{position:sticky;top:74px}
+  .nav h4{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-soft);font-weight:500;margin:0 0 12px 12px}
+  .nav ul{list-style:none}
+  .nav li{margin-bottom:2px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--tinta-soft);text-decoration:none;font-size:13.5px;font-weight:400;transition:.18s;position:relative}
+  .nav a:hover{background:var(--bege-100);color:var(--oliva-900)}
+  .nav a.active{background:var(--oliva-700);color:#fff}
+  .nav a.active .navdot{border-color:#fff}
+  .navdot{width:12px;height:12px;border-radius:50%;border:1.6px solid var(--linha-forte);flex:none;position:relative;transition:.2s}
+  .navdot.done{background:var(--sage-300);border-color:var(--sage-300)}
+  .nav a.active .navdot.done{background:#fff}
+  .navnum{font-family:var(--serif);font-weight:600;font-size:.95rem;width:14px;text-align:center;flex:none;opacity:.8}
+
+  /* ---------- CONTEÚDO ---------- */
+  .content{min-width:0}
+  section.room{background:var(--branco);border:1px solid var(--linha);border-radius:var(--radius);padding:38px 40px;margin-bottom:26px;box-shadow:var(--sombra);scroll-margin-top:80px}
+  .room-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:6px}
+  .room-eyebrow{font-family:var(--serif);font-size:2.2rem;font-weight:600;color:var(--sage-300);line-height:1;flex:none}
+  .room-title{font-family:var(--serif);font-size:1.95rem;font-weight:600;color:var(--oliva-900);line-height:1.08}
+  .room-desc{color:var(--tinta-soft);font-size:.95rem;margin:4px 0 0 0;font-weight:300}
+  .room-divider{display:flex;align-items:center;gap:12px;margin:20px 0 30px}
+  .room-divider .dl{height:1px;flex:1;background:var(--linha)}
+  .room-divider .sprig{width:26px;color:var(--sage-300)}
+
+  /* Perguntas */
+  .q{margin-bottom:28px}
+  .q:last-child{margin-bottom:0}
+  .q > label,.q .qlabel{display:block;font-size:1.02rem;font-weight:400;color:var(--oliva-900);margin-bottom:5px;line-height:1.4}
+  .q .qlabel .req{color:var(--sage-300);font-weight:500;margin-left:3px}
+  .q .hint{font-size:.85rem;color:var(--tinta-soft);margin-bottom:11px;font-weight:300}
+
+  input[type=text],textarea{
+    width:100%;font-family:var(--sans);font-size:.98rem;font-weight:300;color:var(--tinta);
+    background:var(--bege-100);border:1px solid var(--linha);border-radius:var(--radius-sm);
+    padding:12px 15px;transition:.18s;resize:vertical;
+  }
+  textarea{min-height:78px;line-height:1.55}
+  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--oliva-500);background:#fff;box-shadow:0 0 0 3px rgba(124,133,96,.13)}
+  input::placeholder,textarea::placeholder{color:#B3AE9C}
+
+  /* Chips (múltipla escolha) */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{position:relative;cursor:pointer;user-select:none}
+  .chip input{position:absolute;opacity:0;pointer-events:none}
+  .chip span{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border:1px solid var(--linha-forte);border-radius:100px;font-size:.9rem;color:var(--tinta-soft);background:#fff;transition:.16s;font-weight:400}
+  .chip span::before{content:"";width:14px;height:14px;border-radius:4px;border:1.6px solid var(--linha-forte);flex:none;transition:.16s;background-size:11px}
+  .chip input:checked + span{background:var(--oliva-700);border-color:var(--oliva-700);color:#fff}
+  .chip input:checked + span::before{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235E6647' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat;border-color:#fff}
+  .chip:hover span{border-color:var(--oliva-500)}
+
+  /* Radio (escolha única) — pílulas */
+  .pills{display:flex;flex-wrap:wrap;gap:9px}
+  .pill{cursor:pointer;user-select:none}
+  .pill input{position:absolute;opacity:0;pointer-events:none}
+  .pill span{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--linha-forte);border-radius:100px;font-size:.9rem;color:var(--tinta-soft);background:#fff;transition:.16s}
+  .pill span::before{content:"";width:14px;height:14px;border-radius:50%;border:1.6px solid var(--linha-forte);flex:none;transition:.16s}
+  .pill input:checked + span{background:var(--sage-100);border-color:var(--oliva-500);color:var(--oliva-900);font-weight:400}
+  .pill input:checked + span::before{border-color:var(--oliva-700);border-width:4px}
+  .pill:hover span{border-color:var(--oliva-500)}
+
+  /* Pergunta de particularidade destacada */
+  .q.special{background:var(--bege-100);border:1px dashed var(--linha-forte);border-radius:var(--radius-sm);padding:20px 22px;margin-top:32px}
+  .q.special .qlabel{display:flex;align-items:center;gap:9px;color:var(--oliva-700)}
+  .q.special .sprig{width:20px;color:var(--sage-300);flex:none}
+
+  /* Kicker do hero */
+  .kicker{font-family:var(--sans);font-weight:500;letter-spacing:.3em;text-transform:uppercase;font-size:12px;color:var(--tinta-soft);margin-bottom:10px}
+
+  /* Cartões visuais ilustrados */
+  .visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px}
+  .vcard{cursor:pointer}
+  .vcard input{position:absolute;opacity:0;pointer-events:none}
+  .vcard-inner{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 12px 14px;border:1px solid var(--linha-forte);border-radius:var(--radius-sm);background:var(--branco);transition:.16s;color:var(--oliva-500);height:100%}
+  .vcard:hover .vcard-inner{border-color:var(--oliva-500);background:var(--bege-100)}
+  .vcard input:checked + .vcard-inner{border-color:var(--oliva-700);background:var(--sage-100);color:var(--oliva-900);box-shadow:0 0 0 2px rgba(94,102,71,.16)}
+  .vill{width:90px;height:66px;display:block;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .novill{width:90px;height:66px;display:flex;align-items:center;justify-content:center;color:var(--sage-300);opacity:.6}
+  .vcard-t{font-size:.86rem;font-weight:400;color:var(--tinta);text-align:center;line-height:1.25}
+  .vcard input:checked + .vcard-inner .vcard-t{color:var(--oliva-900);font-weight:500}
+
+  /* ---------- RODAPÉ DE AÇÕES ---------- */
+  .actionbar{position:fixed;bottom:0;left:0;right:0;z-index:45;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-top:1px solid var(--linha);box-shadow:0 -4px 24px rgba(69,76,54,.06)}
+  .actionbar-inner{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ab-status{font-size:12.5px;color:var(--tinta-soft);flex:1;min-width:160px}
+  .ab-status b{color:var(--oliva-700);font-weight:500}
+  .btn{font-family:var(--sans);font-size:.86rem;font-weight:500;letter-spacing:.02em;border:none;border-radius:100px;padding:11px 22px;cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:8px}
+  .btn svg{width:15px;height:15px}
+  .btn-primary{background:var(--oliva-700);color:#fff}
+  .btn-primary:hover{background:var(--oliva-900);box-shadow:var(--sombra-forte)}
+  .btn-ghost{background:transparent;color:var(--tinta-soft);border:1px solid var(--linha-forte)}
+  .btn-ghost:hover{border-color:var(--oliva-500);color:var(--oliva-700)}
+
+  /* Fechamento */
+  .closing{text-align:center;padding:20px 24px 0}
+  .closing .sprig{width:40px;color:var(--sage-300);margin-bottom:10px}
+  .closing p{font-family:var(--serif);font-style:italic;font-size:1.3rem;color:var(--oliva-700)}
+  .closing small{display:block;color:var(--tinta-soft);margin-top:8px;font-family:var(--sans);font-style:normal;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase}
+
+  /* ---------- RESPONSIVO ---------- */
+  @media (max-width:880px){
+    .shell{grid-template-columns:1fr;gap:0;padding-top:20px}
+    .nav{position:static;margin-bottom:24px}
+    .nav ul{display:flex;overflow-x:auto;gap:6px;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+    .nav li{margin:0;flex:none}
+    .nav h4{display:none}
+    .nav a{white-space:nowrap;background:#fff;border:1px solid var(--linha)}
+    .nav a.active{border-color:var(--oliva-700)}
+    section.room{padding:28px 22px}
+    .progress-pct{display:none}
+  }
+  @media (max-width:520px){
+    .hero{padding-top:44px}
+    .chips,.pills{gap:7px}
+    .chip span,.pill span{font-size:.85rem;padding:8px 13px}
+  }
+
+  /* ---------- IMPRESSÃO / PDF ---------- */
+  @media print{
+    .leaf-bg,.progress-wrap,.nav,.actionbar,.meta-badge{display:none!important}
+    body{background:#fff}
+    .shell{display:block;padding:0;max-width:100%}
+    section.room{box-shadow:none;border:none;border-bottom:1px solid #ddd;border-radius:0;page-break-inside:avoid;padding:18px 0}
+    .hero{padding:20px 0}
+    input[type=text],textarea{border:1px solid #ccc;background:#fff}
+    .chip input:not(:checked)+span,.pill input:not(:checked)+span{display:none}
+    .vcard input:not(:checked)+.vcard-inner{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="olive-sprig" viewBox="0 0 64 24">
+    <path d="M2 12 C 20 12, 44 12, 62 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <g fill="currentColor">
+      <ellipse cx="16" cy="7" rx="6" ry="3" transform="rotate(-28 16 7)"/>
+      <ellipse cx="28" cy="17" rx="6" ry="3" transform="rotate(28 28 17)"/>
+      <ellipse cx="40" cy="7" rx="6" ry="3" transform="rotate(-28 40 7)"/>
+      <ellipse cx="52" cy="16" rx="5.5" ry="2.8" transform="rotate(26 52 16)"/>
+      <circle cx="58" cy="9" r="2.4"/>
+      <circle cx="10" cy="15" r="2.2"/>
+    </g>
+  </symbol>
+  <symbol id="olive-branch" viewBox="0 0 120 120">
+    <path d="M60 116 C 60 80, 58 40, 60 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <g fill="currentColor">
+      <ellipse cx="60" cy="20" rx="9" ry="4.5" transform="rotate(-40 60 20)"/>
+      <ellipse cx="60" cy="20" rx="9" ry="4.5" transform="rotate(40 60 20)"/>
+      <ellipse cx="46" cy="38" rx="10" ry="5" transform="rotate(-35 46 38)"/>
+      <ellipse cx="74" cy="46" rx="10" ry="5" transform="rotate(35 74 46)"/>
+      <ellipse cx="44" cy="60" rx="10" ry="5" transform="rotate(-32 44 60)"/>
+      <ellipse cx="76" cy="70" rx="10" ry="5" transform="rotate(32 76 70)"/>
+      <ellipse cx="48" cy="84" rx="9" ry="4.5" transform="rotate(-30 48 84)"/>
+      <circle cx="72" cy="90" r="4"/>
+      <circle cx="52" cy="100" r="3.6"/>
+    </g>
+  </symbol>
+
+  <!-- ===== Ilustrações explicativas (cubas, vaso, tanque, luz, portas, cabideiros) ===== -->
+  <symbol id="il-cuba-conv" viewBox="0 0 120 92">
+    <rect x="12" y="30" width="96" height="9" rx="2"/>
+    <rect x="36" y="39" width="48" height="34" rx="7"/>
+    <line x1="60" y1="30" x2="60" y2="16"/><path d="M60 16 q0 -7 11 -7"/><line x1="71" y1="9" x2="71" y2="14"/>
+    <circle cx="60" cy="60" r="2.6" fill="currentColor"/>
+  </symbol>
+  <symbol id="il-cuba-dupla" viewBox="0 0 120 92">
+    <rect x="8" y="30" width="104" height="9" rx="2"/>
+    <rect x="16" y="39" width="40" height="34" rx="6"/><rect x="64" y="39" width="40" height="34" rx="6"/>
+    <line x1="60" y1="30" x2="60" y2="16"/><path d="M60 16 q0 -7 10 -7"/><line x1="70" y1="9" x2="70" y2="14"/>
+  </symbol>
+  <symbol id="il-cuba-farm" viewBox="0 0 120 92">
+    <path d="M14 26 h92"/>
+    <path d="M30 26 v46 a6 6 0 0 0 6 6 h48 a6 6 0 0 0 6 -6 v-46"/>
+    <line x1="30" y1="41" x2="90" y2="41"/>
+    <line x1="60" y1="26" x2="60" y2="12"/><path d="M60 12 q0 -6 10 -6"/>
+  </symbol>
+  <symbol id="il-cuba-apoio" viewBox="0 0 120 92">
+    <rect x="12" y="54" width="96" height="9" rx="2"/>
+    <ellipse cx="60" cy="40" rx="24" ry="6"/><path d="M36 40 q24 22 48 0"/>
+    <line x1="60" y1="24" x2="60" y2="12"/><path d="M60 12 q0 -6 10 -6"/>
+  </symbol>
+  <symbol id="il-cuba-embutir" viewBox="0 0 120 92">
+    <rect x="12" y="34" width="96" height="10" rx="2"/>
+    <path d="M42 44 v13 a18 10 0 0 0 36 0 v-13"/>
+    <line x1="60" y1="34" x2="60" y2="20"/><path d="M60 20 q0 -6 10 -6"/>
+  </symbol>
+  <symbol id="il-cuba-semi" viewBox="0 0 120 92">
+    <path d="M12 32 h30 M78 32 h30"/><path d="M12 32 v7 M108 32 v7"/>
+    <path d="M42 32 v9 a18 13 0 0 0 36 0 v-9"/><path d="M42 50 q18 16 36 0"/>
+    <line x1="60" y1="24" x2="60" y2="12"/><path d="M60 12 q0 -6 10 -6"/>
+  </symbol>
+  <symbol id="il-cuba-esculpida" viewBox="0 0 120 92">
+    <path d="M12 32 h26 c5 0 8 4 8 9 v10 a14 8 0 0 0 28 0 v-10 c0 -5 3 -9 8 -9 h26"/>
+    <path d="M12 32 v8 M108 32 v8"/>
+    <line x1="60" y1="24" x2="60" y2="12"/><path d="M60 12 q0 -6 10 -6"/>
+  </symbol>
+  <symbol id="il-cuba-parede" viewBox="0 0 120 92">
+    <line x1="16" y1="10" x2="16" y2="82"/>
+    <path d="M16 44 h68 c2 14 -14 24 -34 24 c-14 0 -26 -4 -34 -9 z"/>
+    <path d="M46 14 h8 q5 0 5 7 v5"/>
+  </symbol>
+  <symbol id="il-vaso-acoplada" viewBox="0 0 120 92">
+    <line x1="18" y1="8" x2="18" y2="80"/><line x1="12" y1="80" x2="108" y2="80"/>
+    <rect x="24" y="20" width="18" height="32" rx="3"/>
+    <path d="M42 42 h20 q24 0 24 18 q0 8 -10 8 h-8 l-2 8 h-18 l-2 -8 q-14 0 -14 -14 q0 -10 10 -10z"/>
+  </symbol>
+  <symbol id="il-vaso-parede" viewBox="0 0 120 92">
+    <line x1="20" y1="8" x2="20" y2="80"/><line x1="14" y1="80" x2="106" y2="80"/>
+    <rect x="28" y="18" width="14" height="20" rx="2"/><line x1="31" y1="25" x2="39" y2="25"/><line x1="31" y1="31" x2="39" y2="31"/>
+    <path d="M20 52 h32 q26 0 26 16 q0 6 -8 6 h-6 l-2 6 h-24 l-2 -6 q-14 0 -14 -14z"/>
+  </symbol>
+  <symbol id="il-vaso-suspenso" viewBox="0 0 120 92">
+    <line x1="20" y1="8" x2="20" y2="82"/><line x1="14" y1="82" x2="106" y2="82"/>
+    <path d="M20 38 h34 q26 0 26 16 q0 8 -10 8 h-6 l-2 7 h-26 l-2 -7 h-4 q-6 0 -6 -8z"/>
+  </symbol>
+  <symbol id="il-luz-direta" viewBox="0 0 120 92">
+    <rect x="52" y="12" width="16" height="8" rx="2"/>
+    <line x1="56" y1="20" x2="44" y2="62"/><line x1="60" y1="20" x2="60" y2="62"/><line x1="64" y1="20" x2="76" y2="62"/>
+    <line x1="30" y1="64" x2="90" y2="64"/>
+    <path d="M44 64 q16 9 32 0" fill="currentColor" opacity="0.16"/>
+  </symbol>
+  <symbol id="il-luz-indireta" viewBox="0 0 120 92">
+    <path d="M26 22 h38 v10 h-32 v38 h-6 z"/>
+    <line x1="32" y1="28" x2="56" y2="28"/>
+    <path d="M64 32 q22 8 22 36" opacity="0.5"/><path d="M64 40 q15 6 15 28" opacity="0.32"/>
+    <line x1="20" y1="76" x2="96" y2="76"/>
+  </symbol>
+  <symbol id="il-tanque-conv" viewBox="0 0 120 92">
+    <path d="M28 26 h64 l-6 44 h-52 z"/>
+    <line x1="34" y1="40" x2="86" y2="40"/><line x1="40" y1="50" x2="80" y2="50"/><line x1="42" y1="56" x2="78" y2="56"/><line x1="44" y1="62" x2="76" y2="62"/>
+    <line x1="60" y1="26" x2="60" y2="14"/><path d="M60 14 q0 -6 9 -6"/>
+  </symbol>
+  <symbol id="il-tanque-esculpido" viewBox="0 0 120 92">
+    <rect x="26" y="30" width="68" height="44" rx="4"/><rect x="34" y="30" width="52" height="12" rx="2"/>
+    <line x1="60" y1="30" x2="60" y2="16"/><path d="M60 16 q0 -6 9 -6"/><circle cx="60" cy="36" r="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="il-porta-correr" viewBox="0 0 120 92">
+    <rect x="20" y="16" width="80" height="58" rx="3"/><line x1="60" y1="16" x2="60" y2="74"/>
+    <rect x="26" y="22" width="30" height="46" rx="2"/><rect x="64" y="22" width="30" height="46" rx="2"/>
+    <path d="M40 84 h-12 M28 84 l4 -3 M28 84 l4 3"/><path d="M80 84 h12 M92 84 l-4 -3 M92 84 l-4 3"/>
+  </symbol>
+  <symbol id="il-porta-giro" viewBox="0 0 120 92">
+    <rect x="34" y="16" width="52" height="56" rx="3"/><line x1="60" y1="16" x2="60" y2="72"/>
+    <path d="M34 16 l-18 10 v50 l18 -8 z"/><path d="M86 16 l18 10 v50 l-18 -8 z"/>
+    <circle cx="55" cy="44" r="1.6" fill="currentColor"/><circle cx="65" cy="44" r="1.6" fill="currentColor"/>
+  </symbol>
+  <symbol id="il-cab-simples" viewBox="0 0 120 92">
+    <rect x="24" y="16" width="72" height="60" rx="3"/><line x1="30" y1="30" x2="90" y2="30"/>
+    <path d="M46 30 l-6 12 h12 z"/><path d="M60 30 l-6 12 h12 z"/><path d="M74 30 l-6 12 h12 z"/>
+  </symbol>
+  <symbol id="il-cab-duplo" viewBox="0 0 120 92">
+    <rect x="24" y="14" width="72" height="64" rx="3"/>
+    <line x1="30" y1="26" x2="90" y2="26"/><path d="M50 26 l-5 9 h10 z"/><path d="M64 26 l-5 9 h10 z"/>
+    <line x1="30" y1="52" x2="90" y2="52"/><path d="M50 52 l-5 9 h10 z"/><path d="M64 52 l-5 9 h10 z"/>
+  </symbol>
+  <symbol id="il-cab-misto" viewBox="0 0 120 92">
+    <rect x="22" y="14" width="76" height="64" rx="3"/><line x1="60" y1="14" x2="60" y2="78"/>
+    <line x1="28" y1="26" x2="54" y2="26"/><line x1="28" y1="50" x2="54" y2="50"/>
+    <path d="M38 26 l-4 7 h8 z"/><path d="M38 50 l-4 7 h8 z"/>
+    <line x1="66" y1="22" x2="92" y2="22"/><path d="M79 22 l-4 7 h8 z"/><line x1="79" y1="29" x2="79" y2="68"/>
+  </symbol>
+</svg>
+
+<div class="leaf-bg" aria-hidden="true">
+  <svg class="l1"><use href="#olive-branch"/></svg>
+  <svg class="l2"><use href="#olive-branch"/></svg>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="brandline">
+    <span class="rule"></span>
+    <svg class="sprig"><use href="#olive-sprig"/></svg>
+    <span class="brandmark">La Vita Arquitetura</span>
+    <svg class="sprig" style="transform:scaleX(-1)"><use href="#olive-sprig"/></svg>
+    <span class="rule"></span>
+  </div>
+  <p class="kicker">Briefing do cliente</p>
+  <h1><em>Vivian</em> &amp; família</h1>
+  <p class="welcome">
+    Esse é o momento mais gostoso do projeto: contar pra gente <strong>como vocês querem viver</strong> cada canto da casa.
+    Peguem um café (ou um vinho), respondam com calma e sem filtro — não existe resposta certa ou errada, existe o jeito de vocês.
+    Quanto mais detalhes, mais o projeto vai ter a cara da família. Vamos juntos? 🌿
+  </p>
+  <div class="meta-badge">
+    <svg style="width:15px;height:15px;color:var(--sage-300)"><use href="#olive-sprig"/></svg>
+    <span><b>Salva automática</b> — pode fechar e voltar depois, suas respostas ficam guardadas neste dispositivo.</span>
+  </div>
+</header>
+
+<!-- PROGRESSO -->
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <span class="progress-label">Progresso</span>
+    <div class="bar"><span id="barFill"></span></div>
+    <span class="progress-pct" id="barPct">0%</span>
+    <span class="save-dot" id="saveDot">salvo</span>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+  <aside class="nav">
+    <h4>Ambientes</h4>
+    <ul id="navList"></ul>
+  </aside>
+  <main class="content" id="content"></main>
+</div>
+
+<!-- BARRA DE AÇÕES -->
+<div class="actionbar">
+  <div class="actionbar-inner">
+    <div class="ab-status" id="abStatus">Comece por onde quiser — <b>tudo é salvo sozinho</b>.</div>
+    <button class="btn btn-ghost" onclick="baixarTxt()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Baixar respostas
+    </button>
+    <button class="btn btn-ghost" onclick="limpar()">Limpar</button>
+    <button class="btn btn-primary" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Gerar PDF
+    </button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ESTRUTURA DO BRIEFING  —  editável por cômodo
+   type: text | textarea | single | multi
+   ============================================================ */
+const BRIEFING = [
+{
+  id:"geral", nome:"Sobre vocês", desc:"Antes dos cômodos, queremos conhecer a família e o gosto de vocês como um todo.",
+  q:[
+    {id:"g_nomes", type:"text", label:"Nome dos clientes", req:true, ph:"Como devemos chamar vocês?"},
+    {id:"g_contato", type:"text", label:"Melhor contato (WhatsApp)", ph:"(11) 9...."},
+    {id:"g_familia", type:"textarea", label:"Quem mora na casa?", req:true, hint:"Já temos registrado: casal + 2 filhas (adolescente de ~14 anos e a mais nova de ~9–10 anos). Confirmem os nomes e idades, e nos contem se há pets."},
+    {id:"g_rotina", type:"textarea", label:"Como é a rotina de vocês em casa?", hint:"Quem usa mais cada ambiente, em quais horários, quem trabalha em casa, quem recebe amigos..."},
+    {id:"g_estilo", type:"multi", label:"Quais estilos mais admiram?", opts:["Contemporâneo","Clássico / atemporal","Minimalista","Aconchegante / rústico","Orgânico (curvas e madeira)","Escandinavo","Boho","Industrial","Luxo discreto"]},
+    {id:"g_sensacao", type:"textarea", label:"Que sensação vocês querem sentir ao entrar em casa?", req:true, hint:"Ex.: aconchego, sofisticação, leveza, energia, calma de spa..."},
+    {id:"g_paleta", type:"textarea", label:"Paleta de cores que mais amam para a casa como um todo", req:true, hint:"Podem citar exemplos: off-white, bege, verde oliva, terracota, madeira clara, tons terrosos..."},
+    {id:"g_cores_nao", type:"text", label:"Cores que vocês NÃO querem ver no projeto de jeito nenhum", req:true, ph:"Ex.: vermelho, roxo, cinza frio..."},
+    {id:"g_materiais", type:"multi", label:"Materiais que agradam vocês na composição do projeto", opts:["Madeira","Mármore / pedras naturais","Cimento queimado / microcimento","Revestimentos foscos (acetinados)","Revestimentos polidos (brilho)","Linho e tecidos naturais","Palha / fibras naturais","Metais (dourado, inox, preto)","Vidro","Couro"]},
+    {id:"g_madeira", type:"single", label:"Tonalidade de madeira preferida", opts:["Clara","Média","Escura","Mix de tons"]},
+    {id:"g_metal", type:"single", label:"Acabamento metálico que predomina no gosto de vocês", opts:["Dourado fosco","Dourado polido","Inox escovado (fosco)","Inox cromado","Preto fosco","Champanhe","Não gostamos de metais aparentes"]},
+    {id:"g_manut", type:"single", label:"Como vocês pensam a manutenção da casa?", opts:["Prioridade: materiais fáceis de limpar","Equilíbrio entre beleza e praticidade","Topamos materiais nobres, mesmo que exijam cuidado"]},
+    {id:"g_ref", type:"textarea", label:"Têm imagens de referência? (Pinterest, Instagram, projetos que amam)", hint:"Descrevam aqui ou avisem que enviarão pelo grupo do WhatsApp."},
+    {id:"g_mudanca", type:"single", label:"Vocês já moram na casa ou é uma mudança?", opts:["Já moramos","Vamos nos mudar","Reforma antes de mudar"]},
+    {id:"g_prazo", type:"text", label:"Existe um prazo ou data importante para a entrega?", ph:"Ex.: aniversário, festa, mudança marcada..."},
+    {id:"g_part", type:"special", label:"Existe alguma particularidade geral da casa ou da família que devemos saber antes de começar?"}
+  ]
+},
+{
+  id:"cozinha", nome:"Cozinha", desc:"O coração da casa. Vamos entender como vocês cozinham e recebem.",
+  q:[
+    {id:"k_gosto", type:"textarea", label:"Descrevam com detalhes o que vocês mais amam em uma cozinha ao entrar", req:true, hint:"Ex.: amo bancada ampla, gosto de tudo clean, adoro uma ilha para conversar enquanto cozinho..."},
+    {id:"k_uso", type:"textarea", label:"Como vocês usam a cozinha no dia a dia?", req:true, hint:"Cozinham todos os dias? Querem algo super equipado? É passagem rápida?"},
+    {id:"k_cores", type:"textarea", label:"Tonalidades e cores preferidas para a cozinha", req:true, ph:"Ex.: verde oliva na marcenaria, bancada clara, madeira..."},
+    {id:"k_detalhes", type:"multi", label:"Quais desses itens vocês querem na cozinha?", opts:["Calha úmida","Torneira gourmet articulável","Torneira água quente e fria","Purificador de água","Saída para água com gás","Forno elétrico","Forno a gás","Cooktop por indução","Cooktop a gás","Coifa","Depurador","Geladeira inverse","Geladeira side by side","Lava-louças","Microondas de embutir","Torre quente (forno + microondas)","Adega / cervejeira","Bancada ilha","Bancada península","Lixeira embutida","Dosador de detergente"]},
+    {id:"k_cuba", type:"single", visual:true, label:"Sobre a cuba, preferem", opts:[{t:"Convencional",svg:"il-cuba-conv"},{t:"Dupla",svg:"il-cuba-dupla"},{t:"Farm sink (gourmet)",svg:"il-cuba-farm"}]},
+    {id:"k_cubacor", type:"single", label:"Cor da cuba", opts:["Inox polido","Inox fosco","Preto fosco","Dourada","Rose gold","Branca (granito/quartzo)"]},
+    {id:"k_ilha", type:"single", label:"Se houver espaço, querem ilha ou península?", opts:["Sim, ilha","Sim, península","Tanto faz","Não"]},
+    {id:"k_ref", type:"single", label:"Área acima da bancada (backsplash)", opts:["Queremos um revestimento de destaque / charme","Preferimos algo neutro e discreto"]},
+    {id:"k_refeicao", type:"single", label:"Querem espaço para refeições rápidas (banquetas)?", opts:["Sim","Não","Depende do espaço"]},
+    {id:"k_despensa", type:"single", label:"Querem despensa / armário de alimentos planejado?", opts:["Sim","Não"]},
+    {id:"k_cafe", type:"single", label:"Querem um 'cantinho do café'?", opts:["Sim","Não"]},
+    {id:"k_marc", type:"multi", label:"Sobre a marcenaria da cozinha", opts:["Portas comuns","Gavetas","Gavetões para panelas","Nichos","Porta-temperos vertical","Porta-talheres embutido","Portas basculantes","Portas de correr","Vassoureiro na base","Fruteira planejada"]},
+    {id:"k_led", type:"single", label:"Querem fita de LED sob os armários (iluminação de bancada)?", opts:["Sim","Não"]},
+    {id:"k_equip", type:"textarea", label:"Têm muitos eletroportáteis / utensílios para guardar?", hint:"Listem os principais: liquidificador, batedeira, air fryer, faqueiro, panelas grandes..."},
+    {id:"k_reap", type:"text", label:"Há algum móvel ou eletro para reaproveitar?", ph:"Informe modelo / dimensões, se possível."},
+    {id:"k_part", type:"special", label:"Existe alguma particularidade especial para a COZINHA?"}
+  ]
+},
+{
+  id:"sala", nome:"Sala de estar", desc:"O ambiente de conviver, relaxar e receber.",
+  q:[
+    {id:"sl_gosto", type:"textarea", label:"O que vocês mais gostam em uma sala de estar? Como querem se sentir nela?", req:true},
+    {id:"sl_uso", type:"textarea", label:"Como pretendem usar a sala?", req:true, hint:"Receber visitas, cinema em família, relaxar, home office ocasional, leitura..."},
+    {id:"sl_cores", type:"textarea", label:"Cores e tonalidades preferidas para a sala"},
+    {id:"sl_visitas", type:"single", label:"Vocês recebem visitas com frequência?", opts:["Sim, muito","Às vezes","Raramente"]},
+    {id:"sl_moveis", type:"multi", label:"O que a sala precisa comportar?", opts:["Sofá em L","Sofá retrátil","Sofá orgânico","Poltronas","Mesa de centro","Mesas laterais","Painel de TV","Rack","Home theater","Aparador","Estante / nichos de decoração","Tapete","Espelhos","Quadros"]},
+    {id:"sl_tv", type:"text", label:"Tamanho aproximado da TV (polegadas)", ph:"Ex.: 65\""},
+    {id:"sl_marc", type:"multi", label:"Sobre a marcenaria / painel da sala", opts:["Portas fechadas","Prateleiras expostas","Gavetas","Nichos","Rack suspenso","Rack no chão","Porta oculta","LED de destaque nas prateleiras"]},
+    {id:"sl_exp", type:"single", label:"Vocês preferem tudo fechado ou gostam de expor objetos?", opts:["Tudo fechado e clean","Gostamos de expor alguns objetos","Misto"]},
+    {id:"sl_cort", type:"single", label:"Para as janelas, preferem", opts:["Cortinas","Persianas","Ambas"]},
+    {id:"sl_plantas", type:"single", label:"Gostam de plantas / vegetação no ambiente?", opts:["Sim","Não","Depende"]},
+    {id:"sl_ponto", type:"text", label:"Querem algum ponto de cor na sala? Quais cores?"},
+    {id:"sl_reap", type:"text", label:"Algum móvel para reaproveitar?", ph:"Modelo / dimensões."},
+    {id:"sl_part", type:"special", label:"Existe alguma particularidade especial para a SALA DE ESTAR?"}
+  ]
+},
+{
+  id:"gourmet", nome:"Churrasqueira / Gourmet", desc:"O espaço de festa, happy hour e reunir a família.",
+  q:[
+    {id:"gr_gosto", type:"textarea", label:"Como vocês imaginam o espaço gourmet? Que clima querem criar?", req:true},
+    {id:"gr_uso", type:"textarea", label:"Como pretendem usar?", req:true, hint:"Churrascos grandes, happy hour a dois, uso diário, festas de aniversário..."},
+    {id:"gr_churras", type:"single", label:"Tipo de churrasqueira", opts:["A carvão / lenha tradicional","A gás","Elétrica","Parrilla / argentina","Ainda não decidimos"]},
+    {id:"gr_itens", type:"multi", label:"O que o gourmet precisa ter?", opts:["Bancada de apoio","Cuba / pia","Cooktop","Forno de pizza","Coifa","Geladeira","Cervejeira","Adega","Frigobar","Cristaleira / expositor","Armários planejados","Bancada com banquetas","Mesa para refeições"]},
+    {id:"gr_cap", type:"text", label:"Quantas pessoas costumam receber nesse espaço?", ph:"Ex.: 8 a 12 pessoas"},
+    {id:"gr_integra", type:"single", label:"O gourmet é integrado com a área externa / jardim?", opts:["Sim, integrado","Parcialmente","Não / é interno"]},
+    {id:"gr_cores", type:"textarea", label:"Cores e materiais que gostam para esse ambiente"},
+    {id:"gr_part", type:"special", label:"Existe alguma particularidade especial para a CHURRASQUEIRA / GOURMET?"}
+  ]
+},
+{
+  id:"lavanderia", nome:"Lavanderia", desc:"Funcional, organizada e bonita — trabalho leve.",
+  q:[
+    {id:"lv_gosto", type:"textarea", label:"O que vocês mais gostam em uma lavanderia?", req:true, hint:"Ex.: gosto de tudo clean, clarinho, com cestos organizadores, tudo escondido..."},
+    {id:"lv_itens", type:"multi", label:"O que a lavanderia precisa ter?", opts:["Vassoureiro","Armário para produtos de limpeza","Cabideiro","Varal de teto retrátil","Varal de parede","Tanque","Bancada para dobrar roupa","Espaço para passar roupa","Guarda do aspirador de pó","Tulha para roupa suja","Armário alto (escada, rodo, objetos verticais)"]},
+    {id:"lv_maq", type:"single", label:"Sobre as máquinas", opts:["Lava e seca","Lavadora + secadora separadas","Lavadora frontal comum","Lavadora superior comum"]},
+    {id:"lv_tanque", type:"single", visual:true, label:"Sobre o tanque", opts:[{t:"Convencional",svg:"il-tanque-conv"},{t:"Esculpido (na marcenaria)",svg:"il-tanque-esculpido"},{t:"Não precisa"}]},
+    {id:"lv_camuf", type:"single", label:"Querem a lavanderia 'camuflada' (escondida atrás de portas)?", opts:["Sim","Não","Depende"]},
+    {id:"lv_cores", type:"text", label:"Cores e clima para a lavanderia"},
+    {id:"lv_part", type:"special", label:"Existe alguma particularidade especial para a LAVANDERIA?"}
+  ]
+},
+{
+  id:"banho_social", nome:"Banheiro social", desc:"O banheiro das visitas — pode ousar aqui.",
+  q:[
+    {id:"bs_gosto", type:"textarea", label:"O que vocês gostam em um banheiro social / lavabo?", req:true, hint:"É o banheiro que as visitas usam — vale um toque especial."},
+    {id:"bs_clima", type:"single", label:"Que clima querem para o social?", opts:["Neutro e elegante","Marcante / statement (papel de parede, pedra forte)","Clean e minimalista"]},
+    {id:"bs_papel", type:"single", label:"Toparam papel de parede ou revestimento de destaque?", opts:["Sim, adoramos","Não","Depende da proposta"]},
+    {id:"bs_cuba", type:"single", visual:true, label:"Sobre a cuba", opts:[{t:"De apoio",svg:"il-cuba-apoio"},{t:"De embutir",svg:"il-cuba-embutir"},{t:"Semiencaixe",svg:"il-cuba-semi"},{t:"Esculpida (na bancada)",svg:"il-cuba-esculpida"},{t:"De parede",svg:"il-cuba-parede"}]},
+    {id:"bs_cubacor", type:"single", label:"Cor da cuba", opts:["Branca","Preta","Cinza","Colorida","Pedra natural"]},
+    {id:"bs_vaso", type:"single", visual:true, label:"Vaso sanitário", opts:[{t:"Caixa acoplada",svg:"il-vaso-acoplada"},{t:"Descarga na parede",svg:"il-vaso-parede"},{t:"Suspenso",svg:"il-vaso-suspenso"}]},
+    {id:"bs_metais", type:"single", label:"Cor dos metais (torneira)", opts:["Dourado fosco","Dourado polido","Inox cromado","Inox escovado","Preto fosco","Champanhe","Grafite"]},
+    {id:"bs_espelho", type:"text", label:"Preferência de espelho (formato / estilo)", ph:"Orgânico, redondo, retangular, com moldura..."},
+    {id:"bs_part", type:"special", label:"Existe alguma particularidade especial para o BANHEIRO SOCIAL?"}
+  ]
+},
+{
+  id:"quarto_casal", nome:"Quarto do casal", desc:"O refúgio de vocês. Aqui pensamos em descanso e intimidade.",
+  q:[
+    {id:"qc_gosto", type:"textarea", label:"Descrevam com detalhes o que vocês mais amam em um quarto ao entrar", req:true},
+    {id:"qc_sensacao", type:"textarea", label:"Que sensação querem no quarto?", req:true, hint:"Refúgio, clima de hotelaria, aconchego, leveza..."},
+    {id:"qc_hobby", type:"text", label:"Têm algum hábito no quarto?", ph:"Ex.: ler antes de dormir, assistir TV, trabalhar..."},
+    {id:"qc_cores", type:"textarea", label:"Cores e tonalidades preferidas para o quarto"},
+    {id:"qc_papel", type:"single", label:"Gostam de papel de parede?", opts:["Sim","Não","Depende"]},
+    {id:"qc_moveis", type:"multi", label:"O que o quarto precisa ter?", opts:["Cabeceira estofada","Cabeceira em marcenaria","Cabeceira em formato personalizado","Mesas de cabeceira","Televisão","Base de cama personalizada","Base box","Cama queen","Cama king","Poltrona de leitura","Penteadeira","Apoio para trabalho","Baú / recamier","Gavetas para joias com fechadura"]},
+    {id:"qc_closet", type:"single", label:"Terá closet ou guarda-roupa no quarto?", opts:["Closet fechado","Closet aberto / integrado","Guarda-roupa","Ainda não sabemos"]},
+    {id:"qc_gr", type:"multi", label:"Sobre o guarda-roupa / closet", opts:["Cabideiro simples","Cabideiro duplo","Muitas gavetas","Portas de correr","Portas de giro","Portas de vidro","Maleiros","Nichos para enxoval","Sapateira","Iluminação interna","Espaço para vestidos longos / casacos"]},
+    {id:"qc_sapatos", type:"text", label:"Aproximadamente quantos pares de sapato para dimensionar o armazenamento?"},
+    {id:"qc_colecao", type:"text", label:"Colecionam algo que gostariam de expor?", ph:"Ex.: perfumes, bolsas, relógios..."},
+    {id:"qc_especial", type:"text", label:"Algo diferente / grande para guardar?", ph:"Informe medidas se possível."},
+    {id:"qc_ilum", type:"multi", label:"Sobre a iluminação", opts:["Pendentes de cabeceira","Spots","Arandelas de parede","Fitas de LED de destaque","Trilho","Luz indireta (sanca)"]},
+    {id:"qc_lumtemp", type:"single", label:"Temperatura da luz", opts:["Quente (amarelada)","Neutra","Branca"]},
+    {id:"qc_luztipo", type:"single", visual:true, label:"Preferem iluminação direta ou indireta?", hint:"Direta: a luz incide direto na superfície. Indireta: a luz rebate em um plano e se difunde de forma suave pelo ambiente.", opts:[{t:"Direta",svg:"il-luz-direta"},{t:"Indireta",svg:"il-luz-indireta"}]},
+    {id:"qc_metal", type:"single", label:"Acabamento de metais no quarto", opts:["Dourado polido","Dourado fosco","Rose gold","Inox fosco","Inox polido","Preto fosco","Champanhe"]},
+    {id:"qc_auto", type:"textarea", label:"Querem automação nesse ambiente?", hint:"Ex.: luzes na Alexa, ar-condicionado, cortinas motorizadas, cenas de iluminação..."},
+    {id:"qc_cort", type:"single", label:"Cortinas ou persianas?", opts:["Cortinas","Persianas","Blackout é obrigatório"]},
+    {id:"qc_tapete", type:"single", label:"Querem tapete?", opts:["Sim","Não"]},
+    {id:"qc_part", type:"special", label:"Existe alguma particularidade especial para o QUARTO DO CASAL?"}
+  ]
+},
+{
+  id:"closet_master", nome:"Closet do master", desc:"O closet do quarto do casal — funcional, iluminado e bem organizado.",
+  q:[
+    {id:"cl_conceito", type:"textarea", label:"Como vocês sonham o closet?", req:true, hint:"Clima de boutique, super funcional, iluminado, aconchegante..."},
+    {id:"cl_tipo", type:"single", label:"O closet será", opts:["Fechado (com portas)","Aberto (integrado ao quarto)","Em corredor","Em formato de L","Em formato de U"]},
+    {id:"cl_portas", type:"single", visual:true, label:"Tipo de porta dos módulos", opts:[{t:"Portas de correr",svg:"il-porta-correr"},{t:"Portas de giro",svg:"il-porta-giro"},{t:"Portas de vidro"},{t:"Sem portas (nichos abertos)"}]},
+    {id:"cl_cabtipo", type:"single", visual:true, label:"Sobre os cabideiros, o que faz mais sentido?", hint:"Simples: uma barra. Duplo: duas barras (dobra a capacidade de peças curtas). Misto: barras + espaço alto para vestidos e casacos longos.", opts:[{t:"Cabideiro simples",svg:"il-cab-simples"},{t:"Cabideiro duplo",svg:"il-cab-duplo"},{t:"Misto",svg:"il-cab-misto"}]},
+    {id:"cl_itens", type:"multi", label:"O que o closet precisa ter?", opts:["Cabideiro para vestidos longos","Muitas gavetas","Gaveteiro com divisórias (joias / relógios)","Sapateira","Sapateira para saltos","Maleiro (parte alta)","Nicho para bolsas","Porta-joias com fechadura","Ilha central com tampo","Espelho de corpo inteiro","Banco / pufe","Cesto para roupa suja","Bancada de penteadeira"]},
+    {id:"cl_ilha", type:"single", label:"Têm vontade / espaço para uma ilha central no closet?", opts:["Sim","Não","Depende do espaço"]},
+    {id:"cl_ilum", type:"single", label:"Iluminação interna nos módulos?", opts:["Sim, com sensor de presença","Sim, comum","Não"]},
+    {id:"cl_sapatos", type:"text", label:"Aproximadamente quantos pares de sapato no total do casal?"},
+    {id:"cl_vestido", type:"single", label:"Têm vestidos longos ou casacos compridos para pendurar esticados?", opts:["Sim","Não"]},
+    {id:"cl_colecao", type:"text", label:"Colecionam bolsas, relógios, óculos ou perfumes? Querem expor?"},
+    {id:"cl_cores", type:"textarea", label:"Cores e materiais para o closet"},
+    {id:"cl_part", type:"special", label:"Existe alguma particularidade especial para o CLOSET DO MASTER?"}
+  ]
+},
+{
+  id:"banho_master", nome:"Banheiro master", desc:"O spa particular — conectado ao jardim de inverno.",
+  q:[
+    {id:"bm_gosto", type:"textarea", label:"Como vocês imaginam o banheiro master?", req:true, hint:"É o espaço mais íntimo — pensem no clima de relaxamento que querem."},
+    {id:"bm_itens", type:"multi", label:"O que o master precisa ter?", opts:["Banheira","Chuveiro de teto","Chuveiro + ducha manual","Bancada dupla (duas cubas)","Nicho para shampoos","Toalheiro térmico","Porta-secador / chapinha","Ducha higiênica","Água quente","Box até o teto","Aquecimento de piso","Banco / assento no box"]},
+    {id:"bm_cuba", type:"single", visual:true, label:"Sobre a cuba", opts:[{t:"De apoio",svg:"il-cuba-apoio"},{t:"Esculpida",svg:"il-cuba-esculpida"},{t:"De embutir",svg:"il-cuba-embutir"},{t:"De parede",svg:"il-cuba-parede"}]},
+    {id:"bm_metais", type:"single", label:"Cor dos metais", opts:["Dourado fosco","Dourado polido","Inox escovado","Inox cromado","Preto fosco","Champanhe","Grafite"]},
+    {id:"bm_cores", type:"textarea", label:"Cores, pedras e clima do master"},
+    {id:"bm_espelho", type:"single", label:"Espelho", opts:["Convencional","Orgânico","Redondo","No armário / gabinete"]},
+    {id:"bm_part", type:"special", label:"Existe alguma particularidade especial para o BANHEIRO MASTER?"}
+  ]
+},
+{
+  id:"jardim_inverno", nome:"Jardim de inverno", desc:"Conectado ao banheiro master — o verde dentro de casa.",
+  q:[
+    {id:"ji_conceito", type:"textarea", label:"Como imaginam esse jardim de inverno conectado ao master?", req:true, hint:"Banho com vista verde, cantinho de descanso, leitura, meditação..."},
+    {id:"ji_plantas", type:"textarea", label:"Preferência de vegetação", hint:"Folhagens densas e tropicais, algo minimalista, plantas específicas que amam..."},
+    {id:"ji_itens", type:"multi", label:"O que gostariam nesse espaço?", opts:["Banheira integrada","Poltrona / banco de descanso","Iluminação natural (zenital / claraboia)","Iluminação para as plantas","Ofurô / spa","Parede verde / jardim vertical","Pedras / seixos decorativos","Fonte / água corrente"]},
+    {id:"ji_manut", type:"single", label:"Como pensam a manutenção das plantas?", opts:["Plantas naturais, aceitamos o cuidado","Preferimos baixa manutenção","Abertos a artificiais de alta qualidade"]},
+    {id:"ji_priv", type:"text", label:"Há preocupação com privacidade / vizinhança nesse espaço?"},
+    {id:"ji_part", type:"special", label:"Existe alguma particularidade especial para o JARDIM DE INVERNO?"}
+  ]
+},
+{
+  id:"escritorio", nome:"Escritório / multiuso", desc:"Um ambiente que trabalha duro em vários papéis.",
+  q:[
+    {id:"es_func", type:"multi", label:"Quais funções esse ambiente precisa acumular?", opts:["Home office","Quarto de hóspedes","Sala de estudos das filhas","Ateliê / hobby","Guarda de objetos","Espaço de leitura","Academia / exercícios"]},
+    {id:"es_gosto", type:"textarea", label:"Como querem que esse ambiente funcione e o que ele precisa ter?", req:true},
+    {id:"es_cama", type:"single", label:"Precisa de cama para hóspedes?", opts:["Sim, cama fixa","Sim, sofá-cama / retrátil","Sim, bicama","Não"]},
+    {id:"es_trab", type:"textarea", label:"Quem usa como escritório e o que precisa na estação de trabalho?", hint:"Monitores, arquivo, espaço para videochamadas, iluminação de fundo..."},
+    {id:"es_marc", type:"multi", label:"Sobre a marcenaria", opts:["Bancada de trabalho","Armários fechados","Prateleiras expostas","Gaveteiro / arquivo","Painel para TV","Nichos decorativos"]},
+    {id:"es_part", type:"special", label:"Existe alguma particularidade especial para o ESCRITÓRIO / MULTIUSO?"}
+  ]
+},
+{
+  id:"banho_filhas", nome:"Banheiro das filhas", desc:"Compartilhado entre a adolescente e a mais nova.",
+  q:[
+    {id:"bf_gosto", type:"textarea", label:"Como imaginam o banheiro das meninas?", req:true, hint:"Será dividido entre a de ~14 e a de ~9 anos — pensem no que funciona para as duas."},
+    {id:"bf_prio", type:"single", label:"O que priorizam aqui?", opts:["Praticidade e fácil limpeza","Um toque lúdico / jovem","Neutro para durar muitos anos"]},
+    {id:"bf_itens", type:"multi", label:"O que esse banheiro precisa ter?", opts:["Bancada com espaço para duas","Nicho para shampoos","Ducha higiênica","Água quente","Box até o teto","Toalheiro","Porta-secador / chapinha","Espelho com boa luz para maquiagem"]},
+    {id:"bf_cuba", type:"single", label:"Sobre a cuba", opts:["De apoio","De embutir","Esculpida","Dupla (duas cubas)"]},
+    {id:"bf_metais", type:"single", label:"Cor dos metais", opts:["Dourado fosco","Inox escovado","Preto fosco","Champanhe","Cromado"]},
+    {id:"bf_cores", type:"text", label:"Cores que agradam para esse banheiro"},
+    {id:"bf_part", type:"special", label:"Existe alguma particularidade especial para o BANHEIRO DAS FILHAS?"}
+  ]
+},
+{
+  id:"filha1", nome:"Quarto — Filha 1 (14 anos)", desc:"A adolescente. Vale muito ouvir a opinião dela!",
+  q:[
+    {id:"f1_nome", type:"text", label:"Nome da filha (adolescente, ~14 anos)"},
+    {id:"f1_gosto", type:"textarea", label:"O que ela mais quer e gosta no quarto dela?", req:true, hint:"Se puderem, respondam junto com ela — o quarto é o território dela."},
+    {id:"f1_tema", type:"text", label:"O quarto deve seguir alguma temática ou estilo?", ph:"Ex.: clean, aesthetic, cores específicas, artista / banda favorita..."},
+    {id:"f1_cores", type:"textarea", label:"Cores e tonalidades preferidas por ela"},
+    {id:"f1_papel", type:"single", label:"Ela gosta de papel de parede?", opts:["Sim","Não","Depende"]},
+    {id:"f1_moveis", type:"multi", label:"O que o quarto precisa ter?", opts:["Cabeceira estofada","Cabeceira em marcenaria","Cama de solteiro","Cama king solteiro","Cama auxiliar para amigas","Escrivaninha / estudos","Penteadeira / canto de maquiagem","Poltrona","Estante de livros","Televisão","Espelho de corpo inteiro","Prateleiras para decoração"]},
+    {id:"f1_estudo", type:"single", label:"Ela precisa de uma boa estação de estudos?", opts:["Sim, é prioridade","Sim, mas simples","Não"]},
+    {id:"f1_gr", type:"multi", label:"Sobre o guarda-roupa dela", opts:["Muitas gavetas","Cabideiro duplo","Sapateira","Iluminação interna","Espaço para uniforme","Nicho para bolsas / acessórios"]},
+    {id:"f1_ponto", type:"text", label:"Algum ponto de cor especial que ela ama?"},
+    {id:"f1_part", type:"special", label:"Existe alguma particularidade especial para o QUARTO DA FILHA 1?"}
+  ]
+},
+{
+  id:"filha2", nome:"Quarto — Filha 2 (9–10 anos)", desc:"A mais nova. Lúdico, mas pensando no crescimento.",
+  q:[
+    {id:"f2_nome", type:"text", label:"Nome da filha (~9–10 anos)"},
+    {id:"f2_gosto", type:"textarea", label:"O que ela mais gosta e sonha para o quarto dela?", req:true},
+    {id:"f2_tema", type:"text", label:"Alguma temática desejada?", ph:"Ex.: flores, natureza, personagem favorito — lembrando que ela vai crescer."},
+    {id:"f2_crescer", type:"single", label:"Preferência entre temática marcante x algo que acompanhe o crescimento", opts:["Pode ser bem temático agora","Algo lúdico mas atemporal","Neutro que cresça com ela"]},
+    {id:"f2_cores", type:"textarea", label:"Cores preferidas dela"},
+    {id:"f2_moveis", type:"multi", label:"O que o quarto precisa ter?", opts:["Cama de solteiro","Cama auxiliar para amigas","Beliche","Cabeceira estofada","Escrivaninha / estudos","Caixas organizadoras de brinquedos","Estante de livros","Cantinho de leitura","Prateleiras para coleções","Espaço para brincar no chão","Penteadeira infantil"]},
+    {id:"f2_brinq", type:"text", label:"Ela tem muitos brinquedos / coleções para guardar? Algo grande?", ph:"Ex.: casa de boneca — informe medidas se possível."},
+    {id:"f2_gr", type:"multi", label:"Sobre o guarda-roupa dela", opts:["Muitas gavetas","Cabideiro na altura dela","Cabideiro alto","Sapateira","Iluminação interna","Espaço para uniforme"]},
+    {id:"f2_part", type:"special", label:"Existe alguma particularidade especial para o QUARTO DA FILHA 2?"}
+  ]
+},
+{
+  id:"fechamento", nome:"Prioridades & Orçamento", desc:"Reta final — o que mais importa e quanto podemos investir.",
+  q:[
+    {id:"fim_prio", type:"textarea", label:"Se precisarem priorizar, quais ambientes são os mais importantes para vocês?"},
+    {id:"fim_ineg", type:"textarea", label:"Existe algo inegociável no projeto?", hint:"Um item, um material, um ambiente que precisa acontecer de qualquer jeito."},
+    {id:"fim_evitar", type:"text", label:"Algo que vocês definitivamente NÃO querem na casa toda?"},
+    {id:"fim_budget", type:"text", label:"Qual o budget geral para a reforma completa?", req:true, hint:"Valor disponível para investir na obra e no projeto. Isso nos ajuda a enquadrar tudo dentro do orçamento e priorizar com honestidade."},
+    {id:"fim_flex", type:"single", label:"Esse orçamento é", opts:["Fixo / teto rígido","Tem alguma flexibilidade","Estamos avaliando faixas"]},
+    {id:"fim_extra", type:"textarea", label:"Qualquer observação final que queiram registrar"}
+  ]
+}
+];
+
+/* ============================================================
+   RENDERIZAÇÃO
+   ============================================================ */
+const STORAGE_KEY = "lavita_briefing_180m2_v1";
+let store = {};
+try{ store = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ store = {}; }
+
+const content = document.getElementById('content');
+const navList = document.getElementById('navList');
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+BRIEFING.forEach((room, i)=>{
+  const num = String(i+1).padStart(2,'0');
+
+  // NAV
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#${room.id}" data-nav="${room.id}">
+      <span class="navdot" data-dot="${room.id}"></span>
+      <span class="navnum">${num}</span>
+      <span>${esc(room.nome)}</span>
+    </a>`;
+  navList.appendChild(li);
+
+  // SECTION
+  const sec = document.createElement('section');
+  sec.className = 'room';
+  sec.id = room.id;
+  let html = `
+    <div class="room-head">
+      <span class="room-eyebrow">${num}</span>
+      <div>
+        <h2 class="room-title">${esc(room.nome)}</h2>
+        <p class="room-desc">${esc(room.desc)}</p>
+      </div>
+    </div>
+    <div class="room-divider"><span class="dl"></span><svg class="sprig"><use href="#olive-sprig"/></svg><span class="dl"></span></div>
+  `;
+
+  room.q.forEach(q=>{
+    const val = store[q.id];
+    const req = q.req ? '<span class="req">*</span>' : '';
+    const hint = q.hint ? `<div class="hint">${esc(q.hint)}</div>` : '';
+
+    if(q.type==='text'){
+      html += `<div class="q"><label class="qlabel" for="${q.id}">${esc(q.label)}${req}</label>${hint}
+        <input type="text" id="${q.id}" data-q="${q.id}" placeholder="${q.ph?esc(q.ph):''}" value="${val?esc(val):''}"></div>`;
+    }
+    else if(q.type==='textarea' || q.type==='special'){
+      const cls = q.type==='special' ? 'q special' : 'q';
+      const sprig = q.type==='special' ? '<svg class="sprig"><use href="#olive-sprig"/></svg>' : '';
+      html += `<div class="${cls}"><label class="qlabel" for="${q.id}">${sprig}${esc(q.label)}${req}</label>${hint}
+        <textarea id="${q.id}" data-q="${q.id}" placeholder="${q.ph?esc(q.ph):'Escrevam com liberdade...'}">${val?esc(val):''}</textarea></div>`;
+    }
+    else if(q.type==='single' && q.visual){
+      let cards = q.opts.map(o=>{
+        const checked = val===o.t ? 'checked' : '';
+        const ill = o.svg
+          ? `<svg class="vill"><use href="#${o.svg}"/></svg>`
+          : `<span class="novill"><svg style="width:32px;height:18px"><use href="#olive-sprig"/></svg></span>`;
+        return `<label class="vcard"><input type="radio" name="${q.id}" data-q="${q.id}" value="${esc(o.t)}" ${checked}><span class="vcard-inner">${ill}<span class="vcard-t">${esc(o.t)}</span></span></label>`;
+      }).join('');
+      html += `<div class="q"><span class="qlabel">${esc(q.label)}${req}</span>${hint}<div class="visual-grid">${cards}</div></div>`;
+    }
+    else if(q.type==='single'){
+      let opts = q.opts.map(o=>{
+        const checked = val===o ? 'checked' : '';
+        return `<label class="pill"><input type="radio" name="${q.id}" data-q="${q.id}" value="${esc(o)}" ${checked}><span>${esc(o)}</span></label>`;
+      }).join('');
+      html += `<div class="q"><span class="qlabel">${esc(q.label)}${req}</span>${hint}<div class="pills">${opts}</div></div>`;
+    }
+    else if(q.type==='multi'){
+      const arr = Array.isArray(val)?val:[];
+      let opts = q.opts.map(o=>{
+        const checked = arr.includes(o) ? 'checked' : '';
+        return `<label class="chip"><input type="checkbox" data-q="${q.id}" value="${esc(o)}" ${checked}><span>${esc(o)}</span></label>`;
+      }).join('');
+      html += `<div class="q"><span class="qlabel">${esc(q.label)}${req}</span>${hint}<div class="chips">${opts}</div></div>`;
+    }
+  });
+
+  sec.innerHTML = html;
+  content.appendChild(sec);
+});
+
+// Fechamento decorativo
+const closing = document.createElement('div');
+closing.className = 'closing';
+closing.innerHTML = `<svg class="sprig"><use href="#olive-branch"/></svg>
+  <p>Obrigada por dividir os sonhos de vocês com a gente.</p>
+  <small>La Vita Arquitetura</small>`;
+content.appendChild(closing);
+
+/* ============================================================
+   SALVAR / PROGRESSO
+   ============================================================ */
+const saveDot = document.getElementById('saveDot');
+let saveTimer;
+function persist(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  saveDot.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>saveDot.classList.remove('show'), 1400);
+  updateProgress();
+}
+
+// listeners
+content.addEventListener('input', e=>{
+  const q = e.target.dataset.q;
+  if(!q) return;
+  if(e.target.type==='text' || e.target.tagName==='TEXTAREA'){
+    store[q] = e.target.value;
+    persist();
+  }
+});
+content.addEventListener('change', e=>{
+  const q = e.target.dataset.q;
+  if(!q) return;
+  if(e.target.type==='radio'){
+    store[q] = e.target.value;
+    persist();
+  } else if(e.target.type==='checkbox'){
+    const boxes = content.querySelectorAll(`input[type=checkbox][data-q="${q}"]`);
+    store[q] = Array.from(boxes).filter(b=>b.checked).map(b=>b.value);
+    persist();
+  }
+});
+
+function answered(q){
+  const v = store[q.id];
+  if(q.type==='multi') return Array.isArray(v) && v.length>0;
+  return v!==undefined && v!==null && String(v).trim()!=='';
+}
+
+const barFill = document.getElementById('barFill');
+const barPct = document.getElementById('barPct');
+const abStatus = document.getElementById('abStatus');
+
+function updateProgress(){
+  let total=0, done=0;
+  BRIEFING.forEach(room=>{
+    let rTotal=0, rDone=0;
+    room.q.forEach(q=>{
+      total++; rTotal++;
+      if(answered(q)){ done++; rDone++; }
+    });
+    const dot = document.querySelector(`[data-dot="${room.id}"]`);
+    if(dot) dot.classList.toggle('done', rDone===rTotal && rTotal>0);
+  });
+  const pct = total? Math.round(done/total*100) : 0;
+  barFill.style.width = pct+'%';
+  barPct.textContent = pct+'%';
+  if(pct===0) abStatus.innerHTML='Comece por onde quiser — <b>tudo é salvo sozinho</b>.';
+  else if(pct===100) abStatus.innerHTML='<b>Tudo respondido!</b> Gere o PDF e nos envie. 🌿';
+  else abStatus.innerHTML=`<b>${done}</b> de <b>${total}</b> respostas · continue no seu ritmo.`;
+}
+
+/* Nav ativa ao rolar */
+const sections = BRIEFING.map(r=>document.getElementById(r.id));
+const navLinks = {};
+document.querySelectorAll('[data-nav]').forEach(a=>navLinks[a.dataset.nav]=a);
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      Object.values(navLinks).forEach(a=>a.classList.remove('active'));
+      const a = navLinks[en.target.id];
+      if(a){ a.classList.add('active'); a.scrollIntoView({block:'nearest',inline:'center'}); }
+    }
+  });
+},{rootMargin:'-40% 0px -55% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+/* ============================================================
+   EXPORTAR .TXT
+   ============================================================ */
+function baixarTxt(){
+  let out = "BRIEFING · LA VITA ARQUITETURA\nCasa ~180m²\n";
+  out += "Gerado em "+new Date().toLocaleString('pt-BR')+"\n";
+  out += "="+"=".repeat(50)+"\n\n";
+  BRIEFING.forEach((room,i)=>{
+    out += `${String(i+1).padStart(2,'0')}. ${room.nome.toUpperCase()}\n`;
+    out += "-".repeat(52)+"\n";
+    room.q.forEach(q=>{
+      const v = store[q.id];
+      let a = "(sem resposta)";
+      if(q.type==='multi' && Array.isArray(v) && v.length) a = v.join(", ");
+      else if(v!==undefined && String(v).trim()!=='') a = v;
+      out += `• ${q.label}\n   → ${a}\n\n`;
+    });
+    out += "\n";
+  });
+  const blob = new Blob([out], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = "briefing_lavita_180m2.txt";
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function limpar(){
+  if(confirm("Isso vai apagar todas as respostas deste dispositivo. Tem certeza?")){
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+updateProgress();
+</script>
+</body>
+</html>
