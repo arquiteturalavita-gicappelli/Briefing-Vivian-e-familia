@@ -857,21 +857,25 @@ function limpar(){
 // >>> TROQUE pelo e-mail da La Vita Arquitetura que deve RECEBER as respostas <<<
 const EMAIL_DESTINO = "contato@arquiteturalavita.com.br";
 // URL do FormSubmit (não precisa mexer aqui, só no e-mail acima)
-const FORMSUBMIT_URL = "https://formsubmit.co/ajax/" + EMAIL_DESTINO;
+// Endpoint "normal" do FormSubmit — é o que processa anexos de arquivo.
+// O endereço /ajax/ existe, mas não envia o PDF anexado, só campos de texto.
+const FORMSUBMIT_URL = "https://formsubmit.co/" + EMAIL_DESTINO;
 
 /* Monta um relatório HTML limpo (sem UI de formulário) para virar PDF */
 function montarRelatorioHTML(){
+  // Ficha isolada, fora da tela, com posição fixa — evita que o gerador de PDF
+  // capture o restante da página (é isso que causava as páginas em branco).
   const wrap = document.createElement('div');
-  wrap.style.cssText = "font-family:'Jost',sans-serif;color:#33352A;padding:36px;max-width:760px;";
+  wrap.style.cssText = "position:fixed; top:0; left:-99999px; width:760px; background:#fff; font-family:'Jost',sans-serif; color:#33352A; padding:40px;";
   let html = `
-    <div style="text-align:center;margin-bottom:28px;border-bottom:2px solid #DED2B9;padding-bottom:20px;">
+    <div style="text-align:center;margin-bottom:26px;border-bottom:2px solid #DED2B9;padding-bottom:18px;">
       <div style="font-family:'Jost',sans-serif;letter-spacing:.3em;text-transform:uppercase;font-size:11px;color:#5E6647;margin-bottom:8px;">La Vita Arquitetura</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:2rem;color:#454C36;">Briefing do cliente — Vivian &amp; família</div>
-      <div style="font-size:12px;color:#6E7161;margin-top:6px;">Respondido em ${new Date().toLocaleString('pt-BR')}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.9rem;color:#454C36;line-height:1.15;">Briefing do cliente — Vivian &amp; família</div>
+      <div style="font-size:11.5px;color:#6E7161;margin-top:6px;">Respondido em ${new Date().toLocaleString('pt-BR')}</div>
     </div>`;
   BRIEFING.forEach((room,i)=>{
-    html += `<div style="margin-bottom:26px;page-break-inside:avoid;">
-      <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.3rem;color:#454C36;border-bottom:1px solid #E4DDCC;padding-bottom:6px;margin-bottom:10px;">
+    html += `<div class="pdf-room" style="margin-bottom:22px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.2rem;color:#454C36;border-bottom:1px solid #E4DDCC;padding-bottom:5px;margin-bottom:9px;">
         ${String(i+1).padStart(2,'0')} · ${esc(room.nome)}
       </div>`;
     room.q.forEach(q=>{
@@ -879,7 +883,7 @@ function montarRelatorioHTML(){
       let resposta = "<span style='color:#B3AE9C'>(sem resposta)</span>";
       if(q.type==='multi' && Array.isArray(v) && v.length) resposta = esc(v.join(", "));
       else if(v!==undefined && String(v).trim()!=='') resposta = esc(v).replace(/\n/g,'<br>');
-      html += `<div style="margin-bottom:10px;font-size:13.5px;">
+      html += `<div class="pdf-q" style="margin-bottom:9px;font-size:12.5px;line-height:1.4;">
         <div style="color:#5E6647;font-weight:500;">${esc(q.label)}</div>
         <div style="color:#33352A;">${resposta}</div>
       </div>`;
@@ -899,22 +903,37 @@ async function finalizarEEnviar(){
   overlayText.textContent = 'Gerando seu PDF...';
   btn.disabled = true;
 
+  let relatorio;
   try{
-    const relatorio = montarRelatorioHTML();
+    relatorio = montarRelatorioHTML();
     document.body.appendChild(relatorio);
 
+    // Garante que a fonte já carregou antes de tirar a "foto" do relatório
+    if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
+    await new Promise(r=>setTimeout(r, 120));
+
     const opt = {
-      margin: 10,
+      margin: [12,12,14,12],
       filename: 'briefing_vivian_familia.pdf',
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: relatorio.scrollWidth,
+        windowHeight: relatorio.scrollHeight
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css','avoid-all'] }
+      // Só evita cortar cada PERGUNTA ao meio; os blocos de cômodo podem
+      // quebrar entre perguntas normalmente (evita páginas em branco).
+      pagebreak: { mode: ['css'], avoid: ['.pdf-q'] }
     };
 
     // Gera o PDF como Blob (para anexar e para o cliente baixar)
     const pdfBlob = await html2pdf().set(opt).from(relatorio).outputPdf('blob');
     document.body.removeChild(relatorio);
+    relatorio = null;
 
     // 1) Entrega o PDF para o cliente baixar
     const url = URL.createObjectURL(pdfBlob);
@@ -946,6 +965,7 @@ async function finalizarEEnviar(){
     }
   } catch(err){
     console.error(err);
+    if(relatorio && relatorio.parentNode) document.body.removeChild(relatorio);
     overlayText.textContent = 'Não conseguimos enviar automaticamente. Por favor, use "Baixar respostas" e envie por WhatsApp.';
   } finally {
     btn.disabled = false;
