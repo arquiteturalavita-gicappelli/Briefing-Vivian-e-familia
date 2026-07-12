@@ -142,6 +142,63 @@
   .q.special .qlabel{display:flex;align-items:center;gap:9px;color:var(--oliva-700)}
   .q.special .sprig{width:20px;color:var(--sage-300);flex:none}
 
+  /* Anti-corte: impede que perguntas, opções e cabeçalhos
+     sejam partidos entre duas páginas no PDF */
+  .q,
+  .q.special,
+  .pills,
+  .chips,
+  .visual-grid,
+  .room-head,
+  .room-divider,
+  .closing {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* Garante que o título do cômodo não fique sozinho no fim da página */
+  .room-head,
+  .room-divider {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  /* O label (texto da pergunta) nunca fica sozinho no fim da página —
+     sempre vai junto com o campo de resposta abaixo dele */
+  .q > label,
+  .q .qlabel,
+  .q .hint {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  /* Segurança: se uma pergunta for muito longa, permite quebrar internamente
+     (evita o bug do PDF em branco quando o bloco não cabe na página) */
+  .q textarea, .q input[type=text] {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* ---------- MODO COMPACTO (ativado só na hora de fotografar o PDF) ----------
+     Aperta títulos e espaçamentos para cada cômodo caber melhor
+     em UMA página A4 sem o texto ficar minúsculo. */
+  body.pdf-compact section.room{padding:16px 22px;margin-bottom:0}
+  body.pdf-compact .room-eyebrow{font-size:1.15rem}
+  body.pdf-compact .room-title{font-size:1.15rem}
+  body.pdf-compact .room-desc{display:none}
+  body.pdf-compact .room-divider{margin:6px 0 10px}
+  body.pdf-compact .room-divider .sprig{width:16px}
+  body.pdf-compact .q{margin-bottom:9px}
+  body.pdf-compact .q > label, body.pdf-compact .q .qlabel{font-size:.8rem;margin-bottom:2px}
+  body.pdf-compact .q .hint{display:none}
+  body.pdf-compact input[type=text], body.pdf-compact textarea{font-size:.78rem;padding:5px 9px}
+  body.pdf-compact textarea{min-height:30px}
+  body.pdf-compact .chips, body.pdf-compact .pills{gap:4px}
+  body.pdf-compact .chip span, body.pdf-compact .pill span{font-size:.68rem;padding:3px 8px}
+  body.pdf-compact .chip span::before, body.pdf-compact .pill span::before{width:9px;height:9px}
+  body.pdf-compact .visual-grid{grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:5px}
+  body.pdf-compact .vcard-inner{padding:6px 4px;gap:3px}
+  body.pdf-compact .vill, body.pdf-compact .novill{width:52px;height:36px}
+  body.pdf-compact .vcard-t{font-size:.62rem}
+  body.pdf-compact .q.special{padding:8px 12px;margin-top:12px}
+
   /* Kicker do hero */
   .kicker{font-family:var(--sans);font-weight:500;letter-spacing:.3em;text-transform:uppercase;font-size:12px;color:var(--tinta-soft);margin-bottom:10px}
 
@@ -193,19 +250,76 @@
     .chip span,.pill span{font-size:.85rem;padding:8px 13px}
   }
 
-  /* ---------- IMPRESSÃO / PDF ---------- */
+  /* ---------- IMPRESSÃO / PDF (window.print → Salvar como PDF) ---------- */
   @media print{
-    .leaf-bg,.progress-wrap,.nav,.actionbar,.meta-badge{display:none!important}
-    body{background:#fff}
-    .shell{display:block;padding:0;max-width:100%}
-    section.room{box-shadow:none;border:none;border-bottom:1px solid #ddd;border-radius:0;page-break-inside:avoid;padding:18px 0}
-    .hero{padding:20px 0}
-    input[type=text],textarea{border:1px solid #ccc;background:#fff}
-    .chip input:not(:checked)+span,.pill input:not(:checked)+span{display:none}
-    .vcard input:not(:checked)+.vcard-inner{display:none}
+    /* Esconde toda a interface (nav, progresso, botões, background) */
+    .leaf-bg, .progress-wrap, .nav, .actionbar, .meta-badge, .hero .welcome,
+    .btn, #sendOverlay, #pdfSendFrame { display:none!important }
+
+    /* Reset geral */
+    *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important }
+    body{ background:#fff!important; margin:0; padding:0; font-size:11pt }
+
+    /* Hero fica compacto: só marca + título */
+    .hero{ padding:20px 0 10px; page-break-after:avoid }
+    .hero h1{ font-size:22pt }
+    .hero .kicker{ font-size:8pt }
+    .brandline .rule{ width:28px }
+
+    /* Layout: uma coluna, sem grid */
+    .shell{ display:block; padding:0 16px; max-width:100% }
+
+    /* Cada cômodo */
+    section.room{
+      box-shadow:none; border:none; border-radius:0;
+      border-top:2px solid #DED2B9;
+      padding:18px 0 16px; margin-bottom:0;
+      page-break-before:auto;
+    }
+    /* Evita cortar UMA pergunta no meio da página */
+    .q{ page-break-inside:avoid }
+    .room-head{ page-break-after:avoid }
+    .room-divider{ margin:12px 0 16px }
+
+    /* Inputs: mostra valor como texto limpo */
+    input[type=text], textarea{
+      border:none!important; background:transparent!important;
+      padding:2px 0!important; font-size:10.5pt;
+      box-shadow:none!important; resize:none;
+      overflow:visible; height:auto!important;
+    }
+
+    /* Chips/pills: esconde não-selecionados, mostra só os escolhidos */
+    .chip input:not(:checked)+span,
+    .pill input:not(:checked)+span{ display:none!important }
+    .vcard input:not(:checked)+.vcard-inner{ display:none!important }
+
+    /* Selecionados: visual limpo sem fundo escuro (legível impresso) */
+    .chip input:checked+span,
+    .pill input:checked+span{
+      background:#E8E4D8!important; border-color:#C5BEA8!important;
+      color:#33352A!important; font-weight:500;
+    }
+    .chip input:checked+span::before{ display:none }
+    .pill input:checked+span::before{ display:none }
+
+    /* Cartões visuais: mostra só o selecionado, sem borda pesada */
+    .vcard input:checked+.vcard-inner{
+      border-color:#C5BEA8!important; background:#F5F2EB!important;
+      box-shadow:none!important;
+    }
+    .visual-grid{ gap:8px }
+
+    /* Pergunta especial (particularidade): borda sutil */
+    .q.special{ border-style:solid; border-color:#E4DDCC; background:#FAFAF6!important }
+
+    /* Fechamento decorativo */
+    .closing{ margin-top:20px; page-break-inside:avoid }
+    .closing .sprig{ width:30px }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -397,9 +511,9 @@
       Baixar respostas (.txt)
     </button>
     <button class="btn btn-ghost" onclick="limpar()">Limpar</button>
-    <button class="btn btn-primary" id="btnFinalizar" onclick="finalizarEEnviar()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
-      Finalizar e enviar
+    <button class="btn btn-primary" id="btnFinalizar" onclick="gerarPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Gerar PDF
     </button>
   </div>
 </div>
@@ -853,149 +967,91 @@ function limpar(){
 }
 
 /* ============================================================
-   CONFIGURAÇÃO DO ENVIO POR E-MAIL
+   GERAR PDF — 1 ambiente por página, sempre
+   Fluxo:
+   1. Ativa classe .pdf-compact no body (fontes/espaçamentos menores)
+   2. Para cada seção: fotografa, escala para caber INTEIRA na página
+   3. Remove .pdf-compact, salva o PDF
    ============================================================ */
-// >>> TROQUE pelo e-mail da La Vita Arquitetura que deve RECEBER as respostas <<<
-const EMAIL_DESTINO = "contato@arquiteturalavita.com.br";
-// URL do FormSubmit (não precisa mexer aqui, só no e-mail acima)
-// Endpoint "normal" do FormSubmit — é o que processa anexos de arquivo.
-// O endereço /ajax/ existe, mas não envia o PDF anexado, só campos de texto.
-const FORMSUBMIT_URL = "https://formsubmit.co/" + EMAIL_DESTINO;
-
-/* ============================================================
-   GERAR PDF — jsPDF direto (escreve texto linha por linha)
-   Não depende de "foto da tela", funciona sempre.
-   ============================================================ */
-function gerarPdfBlob(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p','mm','a4');
-  const pw = 210, mg = 16, mw = pw - 2*mg;
-  let y = 22;
-
-  function checkPage(need){
-    if(y + need > 280){ doc.addPage(); y = 18; }
-  }
-
-  // --- Cabeçalho ---
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(94,102,71);
-  doc.text('LA VITA ARQUITETURA', pw/2, y, {align:'center'}); y+=7;
-
-  doc.setFontSize(17); doc.setTextColor(69,76,54);
-  doc.text('Briefing do cliente', pw/2, y, {align:'center'}); y+=7;
-  doc.setFontSize(15);
-  doc.text('Vivian & família', pw/2, y, {align:'center'}); y+=7;
-
-  doc.setFontSize(8.5); doc.setTextColor(110,113,97);
-  doc.text('Respondido em ' + new Date().toLocaleString('pt-BR'), pw/2, y, {align:'center'}); y+=4;
-  doc.setDrawColor(222,210,185); doc.setLineWidth(0.5);
-  doc.line(mg, y, pw-mg, y); y+=10;
-
-  // --- Cômodos ---
-  BRIEFING.forEach((room,i)=>{
-    checkPage(18);
-    doc.setFontSize(13); doc.setTextColor(69,76,54);
-    doc.text(String(i+1).padStart(2,'0')+' · '+room.nome, mg, y); y+=2;
-    doc.setDrawColor(228,221,204); doc.setLineWidth(0.3);
-    doc.line(mg, y, pw-mg, y); y+=7;
-
-    room.q.forEach(q=>{
-      checkPage(14);
-      const v = store[q.id];
-      let resp = '(sem resposta)';
-      if(q.type==='multi' && Array.isArray(v) && v.length) resp = v.join(', ');
-      else if(v!==undefined && String(v).trim()!=='') resp = String(v);
-
-      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(94,102,71);
-      const ll = doc.splitTextToSize(q.label, mw);
-      doc.text(ll, mg, y); y += ll.length * 4;
-
-      doc.setFont('helvetica','normal'); doc.setTextColor(51,53,42);
-      const al = doc.splitTextToSize(resp, mw);
-      doc.text(al, mg, y); y += al.length * 4 + 3;
-    });
-    y += 4;
-  });
-
-  return doc.output('blob');
-}
-
-/* ============================================================
-   FINALIZAR E ENVIAR
-   ============================================================ */
-async function finalizarEEnviar(){
-  const overlay = document.getElementById('sendOverlay');
-  const overlayText = document.getElementById('sendOverlayText');
-  const btn = document.getElementById('btnFinalizar');
-  overlay.style.display = 'flex';
-  overlayText.textContent = 'Gerando seu PDF...';
+async function gerarPDF(){
+  var btn     = document.getElementById('btnFinalizar');
+  var oldHTML = btn.innerHTML;
   btn.disabled = true;
 
-  try{
-    const pdfBlob = gerarPdfBlob();
+  // Esconde elementos de UI antes de fotografar
+  var uiElements = document.querySelectorAll('.progress-wrap, .nav, .actionbar, .leaf-bg');
+  uiElements.forEach(function(el){ el.style.visibility='hidden'; });
 
-    // 1) Entrega o PDF para o cliente baixar
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'briefing_vivian_familia.pdf';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+  // Ativa modo compacto
+  document.body.classList.add('pdf-compact');
 
-    // 2) Envia por e-mail com o PDF anexado
-    overlayText.textContent = 'Enviando para a arquiteta...';
-    const nomeCliente = store['g_nomes'] || 'Cliente';
-    const contatoCliente = store['g_contato'] || '';
-    await enviarPorEmailComAnexo(pdfBlob, nomeCliente, contatoCliente);
-    overlayText.textContent = 'Tudo certo! Seu PDF foi baixado e enviado. 🌿';
-  } catch(err){
+  // Aguarda CSS ser aplicado
+  await new Promise(function(r){ setTimeout(r, 120); });
+
+  try {
+    var sections = document.querySelectorAll('#content section.room');
+    if (!sections.length) throw new Error('Nenhuma seção encontrada');
+
+    var jsPDFLib = window.jspdf.jsPDF;
+    var pdf   = new jsPDFLib('p', 'pt', 'a4');
+    var pageW = pdf.internal.pageSize.getWidth();   // 595.28 pt
+    var pageH = pdf.internal.pageSize.getHeight();  // 841.89 pt
+    var mg    = 28; // margem (~1cm)
+    var areaW = pageW - mg * 2;
+    var areaH = pageH - mg * 2;
+
+    for (var s = 0; s < sections.length; s++) {
+      btn.innerHTML = '⏳ ' + (s+1) + ' / ' + sections.length + '...';
+
+      var canvas = await html2canvas(sections[s], {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+        // Garante que fotografa só a seção, não a página inteira
+        width:  sections[s].offsetWidth,
+        height: sections[s].offsetHeight
+      });
+
+      if (s > 0) pdf.addPage();
+
+      // Escala para caber INTEIRAMENTE na área útil da página
+      // (reduz proporcionalmente se for maior, não aumenta se for menor)
+      var scaleW = areaW / canvas.width;
+      var scaleH = areaH / canvas.height;
+      var scale  = Math.min(scaleW, scaleH); // usa a menor escala para garantir que cabe
+
+      var drawW = canvas.width  * scale;
+      var drawH = canvas.height * scale;
+
+      // Centraliza vertical e horizontalmente na página
+      var offsetX = mg + (areaW - drawW) / 2;
+      var offsetY = mg + (areaH - drawH) / 2;
+
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.92),
+        'JPEG',
+        offsetX, offsetY, drawW, drawH
+      );
+
+      // Pausa para o navegador respirar entre seções
+      await new Promise(function(r){ setTimeout(r, 20); });
+    }
+
+    pdf.save('briefing_vivian_familia.pdf');
+    btn.innerHTML = '✅ PDF salvo!';
+    setTimeout(function(){ btn.innerHTML = oldHTML; btn.disabled = false; }, 2500);
+
+  } catch(err) {
     console.error(err);
-    overlayText.textContent = 'Não conseguimos enviar automaticamente. Por favor, use "Baixar respostas" e envie por WhatsApp.';
-  } finally {
+    alert('Erro: ' + err.message);
+    btn.innerHTML = oldHTML;
     btn.disabled = false;
-    setTimeout(()=>{ overlay.style.display='none'; }, 3200);
+  } finally {
+    // Sempre remove o modo compacto e restaura UI
+    document.body.classList.remove('pdf-compact');
+    uiElements.forEach(function(el){ el.style.visibility=''; });
   }
-}
-
-/* Envia o PDF anexado via um <form> real, mirando um iframe oculto. */
-function enviarPorEmailComAnexo(pdfBlob, nomeCliente, contatoCliente){
-  return new Promise((resolve)=>{
-    const iframe = document.getElementById('pdfSendFrame');
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = FORMSUBMIT_URL;
-    form.enctype = 'multipart/form-data';
-    form.target = 'pdfSendFrame';
-    form.style.display = 'none';
-
-    const addField = (name, value)=>{
-      const inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = name; inp.value = value;
-      form.appendChild(inp);
-    };
-    addField('_subject', 'Novo briefing preenchido — ' + nomeCliente);
-    addField('_template', 'box');
-    addField('_captcha', 'false');
-    addField('Cliente', nomeCliente);
-    addField('Contato_WhatsApp', contatoCliente);
-    addField('Observação', 'O PDF completo do briefing está anexado a este e-mail.');
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.name = 'attachment';
-    const dt = new DataTransfer();
-    dt.items.add(new File([pdfBlob], 'briefing_vivian_familia.pdf', {type:'application/pdf'}));
-    fileInput.files = dt.files;
-    form.appendChild(fileInput);
-
-    document.body.appendChild(form);
-    let done = false;
-    const finish = ()=>{
-      if(done) return; done = true;
-      setTimeout(()=>{ form.remove(); resolve(true); }, 300);
-    };
-    iframe.addEventListener('load', finish, { once:true });
-    form.submit();
-    setTimeout(finish, 6000);
-  });
 }
 
 updateProgress();
